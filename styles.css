@@ -1,0 +1,142 @@
+:root {
+    --a4-width: 210mm;
+    --a4-height: 297mm;
+    --margin: 20mm;
+    --photo-width: 30mm;
+    --photo-height: 40mm;
+    --gap: 2mm;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #e0e0e0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.no-print {
+    background: white;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 800px;
+    margin: 20px 0;
+    border-radius: 8px;
+    text-align: center;
+    position: sticky;
+    top: 10px;
+    z-index: 100;
+}
+
+.controls {
+    margin: 15px 0;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    align-items: center;
+}
+
+input[type="file"] {
+    padding: 10px;
+    border: 1px dashed #ccc;
+    border-radius: 4px;
+    background: #f9f9f9;
+}
+
+button {
+    padding: 12px 24px;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    transition: all 0.2s;
+}
+
+.btn-print { background-color: #28a745; color: white; }
+.btn-print:hover { background-color: #218838; }
+
+.btn-clear { background-color: #dc3545; color: white; }
+.btn-clear:hover { background-color: #c82333; }
+
+.instructions {
+    font-size: 0.85em;
+    color: #555;
+    background: #f1f1f1;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 10px;
+    display: inline-block;
+    text-align: left;
+}
+
+/* Área de Impressão */
+.print-area {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    padding-bottom: 50px;
+}
+
+.page {
+    width: var(--a4-width);
+    height: var(--a4-height);
+    background: white;
+    padding: var(--margin);
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: repeat(5, var(--photo-width));
+    grid-auto-rows: var(--photo-height);
+    gap: var(--gap);
+    align-content: start;
+    justify-content: start;
+    box-shadow: 0 0 20px rgba(0,0,0,0.15);
+    position: relative;
+}
+
+/* Marca d'água visual apenas no navegador */
+.page::after {
+    content: "Página A4";
+    position: absolute;
+    bottom: 5mm;
+    right: 5mm;
+    font-size: 10px;
+    color: #ccc;
+}
+
+.photo-container {
+    width: var(--photo-width);
+    height: var(--photo-height);
+    border: 0.2mm solid #ddd; /* Linha de corte visível */
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
+}
+
+.photo-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Regras de Impressão */
+@media print {
+    body { background: white; }
+    .no-print { display: none; }
+    .print-area { gap: 0; padding: 0; }
+    .page {
+        box-shadow: none;
+        margin: 0;
+        page-break-after: always;
+    }
+    .page::after { display: none; }
+    @page {
+        size: A4 portrait;
+        margin: 0;
+    }
+}

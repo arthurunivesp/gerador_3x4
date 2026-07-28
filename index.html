@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador 3x4 em Tempo Real</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="no-print">
+        <h1>Gerador de Fotos 3x4 (Tempo Real)</h1>
+        <p>As fotos aparecerão abaixo conforme você as selecionar.</p>
+        
+        <div class="controls">
+            <input type="file" id="imageInput" accept="image/*" multiple title="Selecionar fotos">
+            <button class="btn-print" onclick="window.print()">Imprimir / PDF</button>
+            <button class="btn-clear" onclick="clearImages()">Limpar Tudo</button>
+        </div>
+
+        <div class="instructions">
+            <strong>Configurações:</strong> A4 Retrato | Margens 2cm | Fotos 3x4cm | Espaço 2mm
+        </div>
+    </div>
+
+    <div id="printArea" class="print-area">
+        <!-- Páginas serão geradas aqui dinamicamente -->
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
