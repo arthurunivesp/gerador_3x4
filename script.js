@@ -1,17 +1,15 @@
 const imageInput = document.getElementById('imageInput');
 const printArea = document.getElementById('printArea');
 
-// Configurações (devem bater com o CSS)
-// A4 (210x297mm) - Margens (20mm cada lado) = 170x257mm úteis
-// Foto (30x40mm) + Gap (2mm)
-// Colunas: floor(170 / 32) = 5 fotos por linha (sobra 10mm)
-// Linhas: floor(257 / 42) = 6 linhas por página (sobra 5mm)
-const MAX_PHOTOS_PER_PAGE = 30; 
+// Configurações
+const MAX_PHOTOS_PER_PAGE = 30;
+
+// Controle global de arraste (evita múltiplos listeners)
+let currentDrag = null;
 
 imageInput.addEventListener('change', function(e) {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
-
     processFiles(files);
 });
 
@@ -20,7 +18,6 @@ async function processFiles(files) {
         const imageSrc = await readFileAsDataURL(file);
         addPhotoToGrid(imageSrc);
     }
-    // Limpa o input para permitir selecionar os mesmos arquivos novamente se necessário
     imageInput.value = '';
 }
 
@@ -44,24 +41,118 @@ function addPhotoToGrid(imageSrc) {
     let pages = document.querySelectorAll('.page');
     let lastPage = pages[pages.length - 1];
 
-    // Verifica se precisa de uma nova página
     if (!lastPage || lastPage.querySelectorAll('.photo-container').length >= MAX_PHOTOS_PER_PAGE) {
         lastPage = createNewPage();
     }
 
     const container = document.createElement('div');
     container.className = 'photo-container';
-    
+    container.title = 'Arraste para mover • Scroll para zoom • Duplo clique para resetar';
+
     const img = document.createElement('img');
     img.src = imageSrc;
-    
+    img.draggable = false;
+
+    // Estado individual da foto
+    const state = {
+        scale: 1,
+        x: 0,
+        y: 0
+    };
+
+    const updateTransform = () => {
+        img.style.transform = `translate(${state.x}px, ${state.y}px) scale(${state.scale})`;
+    };
+
+    // ===== ARRASTAR =====
+    container.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        e.preventDefault();
+
+        currentDrag = {
+            state,
+            startMouseX: e.clientX,
+            startMouseY: e.clientY,
+            startX: state.x,
+            startY: state.y,
+            container
+        };
+
+        container.style.cursor = 'grabbing';
+    });
+
+    // ===== ZOOM (scroll) =====
+    container.addEventListener('wheel', (e) => {
+        e.preventDefault();
+
+        const delta = e.deltaY > 0 ? -0.12 : 0.12;
+        const newScale = Math.min(Math.max(1, state.scale + delta), 4);
+
+        state.scale = newScale;
+        updateTransform();
+    }, { passive: false });
+
+    // ===== RESET (duplo clique) =====
+    container.addEventListener('dblclick', () => {
+        state.scale = 1;
+        state.x = 0;
+        state.y = 0;
+        updateTransform();
+    });
+
     container.appendChild(img);
     lastPage.appendChild(container);
+    updateTransform();
 }
+
+// Listeners globais de mouse (só uma vez)
+window.addEventListener('mousemove', (e) => {
+    if (!currentDrag) return;
+
+    const dx = e.clientX - currentDrag.startMouseX;
+    const dy = e.clientY - currentDrag.startMouseY;
+
+    currentDrag.state.x = currentDrag.startX + dx;
+    currentDrag.state.y = currentDrag.startY + dy;
+
+    currentDrag.container.querySelector('img').style.transform =
+        `translate(${currentDrag.state.x}px, ${currentDrag.state.y}px) scale(${currentDrag.state.scale})`;
+});
+
+window.addEventListener('mouseup', () => {
+    if (currentDrag) {
+        currentDrag.container.style.cursor = 'grab';
+        currentDrag = null;
+    }
+});
+
+// Suporte básico a touch (celular/tablet)
+window.addEventListener('touchmove', (e) => {
+    if (!currentDrag || e.touches.length !== 1) return;
+    e.preventDefault();
+
+    const touch = e.touches[0];
+    const dx = touch.clientX - currentDrag.startMouseX;
+    const dy = touch.clientY - currentDrag.startMouseY;
+
+    currentDrag.state.x = currentDrag.startX + dx;
+    currentDrag.state.y = currentDrag.startY + dy;
+
+    currentDrag.container.querySelector('img').style.transform =
+        `translate(${currentDrag.state.x}px, ${currentDrag.state.y}px) scale(${currentDrag.state.scale})`;
+}, { passive: false });
+
+window.addEventListener('touchend', () => {
+    if (currentDrag) {
+        currentDrag.container.style.cursor = 'grab';
+        currentDrag = null;
+    }
+});
 
 function clearImages() {
     if (confirm('Tem certeza que deseja limpar todas as fotos?')) {
         printArea.innerHTML = '';
         imageInput.value = '';
+        currentDrag = null;
     }
 }
