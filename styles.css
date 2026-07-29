@@ -91,7 +91,7 @@ button {
     grid-auto-rows: var(--photo-height);
     gap: var(--gap);
     align-content: start;
-    justify-content: start;
+    justify-content: center;
     box-shadow: 0 0 20px rgba(0,0,0,0.15);
     position: relative;
 }
